@@ -16,10 +16,11 @@ OpenglWidget::OpenglWidget(QOpenGLWidget *parent)
 void OpenglWidget::initializeGL()
 {
     initializeOpenGLFunctions();
-    glClearColor(0.00f, 0.05f, 0.05f, 1.0f);
+    glClearColor(0.0f, 0.05f, 0.05f, 1.0f);
 
     glEnable(GL_DEPTH_TEST);
-    initSphere(1.0f,100,100);
+    //initSphere(1.0f,100,100);
+    initName(0.0f,0.0f,15.0f,10.0f,5.0f,3.0f);
     initShaders();
 }
 
@@ -35,7 +36,7 @@ void OpenglWidget::paintGL()
 
     QMatrix4x4 modelMatrix;
     modelMatrix.setToIdentity();
-    //modelMatrix.translate(QVector3D(0.0f,0.0f,3.0f));
+    modelMatrix.translate(m_translate);
 
 
     pollEvents();
@@ -50,8 +51,9 @@ void OpenglWidget::paintGL()
     shader.enableAttributeArray(vertLoc);
     shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
 
-    ibo.bind();
-    glDrawElements(GL_TRIANGLES,ibo.size(),GL_UNSIGNED_INT,0);
+    //ibo.bind();
+    glLineWidth(5);
+    glDrawArrays(GL_LINES,0,vbo.size());
     vbo.release();
 }
 
@@ -60,6 +62,85 @@ void OpenglWidget::initShaders()
     shader.addShaderFromSourceFile(QOpenGLShader::Vertex,"C:/Users/ea56/Documents/QtSphere/vert.vert");
     shader.addShaderFromSourceFile(QOpenGLShader::Fragment,"C:/Users/ea56/Documents/QtSphere/frag.frag");
     shader.link();
+}
+
+void OpenglWidget::initName(int x0,int y0, int h, int w, int d1,int d2)
+{
+    QVector<PointData> pData;
+    //P
+    int coeff = x0;
+    pData.append(QVector3D(coeff,y0,0.0f));
+    pData.append(QVector3D(coeff,y0+h,0.0f));
+    pData.append(QVector3D(coeff + w,y0 + h ,0.0f));
+    pData.append(QVector3D(coeff + w,y0,0.0f));
+
+    pData.append(QVector3D(coeff + d2,y0 ,0.0f));
+    pData.append(QVector3D(coeff + d2,y0 + h - d2 ,0.0f));
+    pData.append(QVector3D(coeff + w - d2,y0 + h -d2,0.0f));
+    pData.append(QVector3D(coeff + w - d2,y0 ,0.0f));
+
+    pData.append(QVector3D(coeff ,y0 + h ,0.0f));
+    pData.append(QVector3D(coeff + w,y0 + h ,0.0f));
+    pData.append(QVector3D(coeff + d2,y0 + h  - d2,0.0f));
+    pData.append(QVector3D(coeff + w - d2,y0 + h -d2 ,0.0f));
+
+    pData.append(QVector3D(coeff ,y0  ,0.0f));
+    pData.append(QVector3D(coeff + d2,y0  ,0.0f));
+    pData.append(QVector3D(coeff + w,y0 ,0.0f));
+    pData.append(QVector3D(coeff + w - d2,y0  ,0.0f));
+
+
+    // K
+    coeff += (w + d1);
+    pData.append(QVector3D(coeff     ,y0,0.0f));
+    pData.append(QVector3D(coeff     ,y0+h,0.0f));
+
+    pData.append(QVector3D(coeff + d2,y0 ,0.0f));
+    pData.append(QVector3D(coeff + d2,y0 + h/2 - h/5,0.0f));
+    pData.append(QVector3D(coeff + d2,y0 + h/2 + h/5,0.0f));
+    pData.append(QVector3D(coeff + d2,y0 + h,0.0f));
+
+    pData.append(QVector3D(coeff     ,y0,0.0f));
+    pData.append(QVector3D(coeff + d2     ,y0,0.0f));
+    pData.append(QVector3D(coeff     ,y0 + h,0.0f));
+    pData.append(QVector3D(coeff +d2   ,y0 + h,0.0f));
+
+    pData.append(QVector3D(coeff + d2,y0 + h/2 ,0.0f));
+    pData.append(QVector3D(coeff + w , y0 + h ,0.0f));
+    pData.append(QVector3D(coeff + d2,y0 + h/2,0.0f));
+    pData.append(QVector3D(coeff + w ,y0 ,0.0f));
+
+    pData.append(QVector3D(coeff + d2 ,y0 + h/2 + h/5 ,0.0f));
+    pData.append(QVector3D(coeff + w - d2,y0 + h ,0.0f));
+    pData.append(QVector3D(coeff + d2,y0 + h/2 - h/5,0.0f));
+    pData.append(QVector3D(coeff + w - d2,y0 ,0.0f));
+
+    pData.append(QVector3D(coeff + w ,y0 + h ,0.0f));
+    pData.append(QVector3D(coeff + w - d2,y0 + h ,0.0f));
+    pData.append(QVector3D(coeff + w,y0,0.0f));
+    pData.append(QVector3D(coeff + w - d2,y0 ,0.0f));
+
+    //G
+    coeff += (w + d1);
+    pData.append(QVector3D(coeff , y0, 0.0f));
+    pData.append(QVector3D(coeff , y0  + h ,0.0f));
+    pData.append(QVector3D(coeff + w , y0  + h ,0.0f));
+    pData.append(QVector3D(coeff + w, y0 + h - h/6 ,0.0f));
+
+    pData.append(QVector3D(coeff  , y0  + h ,0.0f));
+    pData.append(QVector3D(coeff + w, y0 + h ,0.0f));
+    pData.append(QVector3D(coeff + w, y0 + h - h/6 ,0.0f));
+    pData.append(QVector3D(coeff + d2, y0 + h - h/6 ,0.0f));
+
+    pData.append(QVector3D(coeff + d2, y0  ,0.0f));
+    pData.append(QVector3D(coeff + d2, y0 + h - h/6 ,0.0f));
+    pData.append(QVector3D(coeff , y0  ,0.0f));
+    pData.append(QVector3D(coeff + d2, y0  ,0.0f));
+
+    vbo.create();
+    vbo.bind();
+    vbo.allocate(pData.constData(),pData.size() * sizeof(PointData));
+    vbo.release();
 }
 
 void OpenglWidget::initSphere(const float& radius, const int& sectorCount, const int &stackCount)
@@ -160,6 +241,7 @@ void OpenglWidget::keyPressEvent(QKeyEvent *event)
     if (event->type() == QKeyEvent::KeyPress)
         {
             int ikey = event->key();
+
             keys[ikey] = true;
         }
         this->update();
@@ -174,27 +256,35 @@ void OpenglWidget::keyReleaseEvent(QKeyEvent *event)
 
 void OpenglWidget::pollEvents()
 {
-    if (keys[Qt::Key::Key_W] == true)
+    if (keys[Qt::Key_T] == true)
+    {
+        m_translate += QVector3D(0.0f,0.05f,0.0f);
+    }
+    if (keys[Qt::Key_G] == true)
+    {
+        m_translate += QVector3D(0.0f,-0.05f,0.0f);
+    }
+    if (keys[Qt::Key_F] == true)
+    {
+        m_translate += QVector3D(-0.05f,0.0f,0.0f);
+    }
+    if (keys[Qt::Key_H] == true)
+    {
+        m_translate += QVector3D(0.05f,0.0f,0.0f);
+    }
+    if (keys[Qt::Key_W] == true)
     {
         camera->ProcessKeyboard(FORWARD, deltaTime);
-
     }
-
-    if (keys[Qt::Key::Key_S] == true)
+    if (keys[Qt::Key_S] == true)
     {
         camera->ProcessKeyboard(BACKWARD, deltaTime);
-
     }
-
-
-    if (keys[Qt::Key::Key_A] == true)
+    if (keys[Qt::Key_A] == true)
     {
         camera->ProcessKeyboard(LEFT, deltaTime);
-
     }
-
-
-    if (keys[Qt::Key::Key_D] == true)
+    if (keys[Qt::Key_D] == true)
     {
         camera->ProcessKeyboard(RIGHT, deltaTime);
 

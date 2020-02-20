@@ -19,12 +19,16 @@ struct PointData
         vertex = std::move(vert);
         normal = std::move(norm);
     }
+    PointData(QVector3D &&vert)
+    {
+        vertex = std::move(vert);
+    }
 };
 
 class OpenglWidget : public QOpenGLWidget , public QOpenGLFunctions
 {
 public:
-    OpenglWidget(QOpenGLWidget *parent = nullptr);
+    explicit OpenglWidget(QOpenGLWidget *parent = nullptr);
 
 protected:
     void initializeGL() override;
@@ -32,6 +36,7 @@ protected:
     void paintGL() override;
 
     void initShaders();
+    void initName(int x0,int y0, int h, int w, int d,int d2);
     void initSphere(const float& radius, const int& sectorCount, const int &stackCount);
 
     void mouseMoveEvent(QMouseEvent* event) override;
@@ -41,6 +46,7 @@ protected:
     void pollEvents();
 private:
     QMatrix4x4 projectionMatrix;
+    QVector3D m_translate;
     QOpenGLShaderProgram shader;
     Camera *camera;
     int lastX;
@@ -49,7 +55,7 @@ private:
 
     QOpenGLBuffer vbo;
     QOpenGLBuffer ibo;
-    bool keys[1024] = { false };
+    bool keys[4024] = { false };
     float deltaTime = 1 / 60.0f;
 };
 
