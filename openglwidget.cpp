@@ -7,9 +7,10 @@ OpenglWidget::OpenglWidget(QOpenGLWidget *parent)
 {
     camera = new Camera(QVector3D(0.0f, 0.0f, 4.0f));
     this->setMouseTracking(true);
+    this->grabKeyboard();
     lastX = size().width() / 2.0f;
     lastY = size().height() / 2.0f;
-
+    scale = QVector3D(1.0f,1.0f,1.0f);
     makeCurrent();
 }
 
@@ -19,8 +20,12 @@ void OpenglWidget::initializeGL()
     glClearColor(0.0f, 0.05f, 0.05f, 1.0f);
 
     glEnable(GL_DEPTH_TEST);
-    //initSphere(1.0f,100,100);
+    initSphere(1.0f,100,100);
     initName(0.0f,0.0f,15.0f,10.0f,5.0f,3.0f);
+    initTor(2.0f,1.0f,60,60);
+    initCube(1.0f);
+    initCylinder(1.0f,3.0f,2.0f,50);
+    initCone(1.0f,2.0f,60);
     initShaders();
 }
 
@@ -36,8 +41,33 @@ void OpenglWidget::paintGL()
 
     QMatrix4x4 modelMatrix;
     modelMatrix.setToIdentity();
-    modelMatrix.translate(m_translate);
+    modelMatrix.translate(QVector3D(x,y,z));
+    if(check)
+    {
 
+    switch(rotateType)
+    {
+    case 0:
+    {
+        q *= QQuaternion::fromAxisAndAngle(QVector3D(1.0f,0.0f,0.0f),0.05f);
+        break;
+    }
+    case 1:
+    {
+        q *= QQuaternion::fromAxisAndAngle(QVector3D(0.0f,1.0f,0.0f),0.05f);
+        break;
+    }
+    case 2:
+    {
+        q *= QQuaternion::fromAxisAndAngle(QVector3D(0.0f,0.0f,1.0f),0.05f);
+        break;
+    }
+    }
+    }
+    if(check || rotState)
+        modelMatrix.rotate(q);
+
+    modelMatrix.scale(scale);
 
     pollEvents();
     shader.bind();
@@ -45,16 +75,76 @@ void OpenglWidget::paintGL()
     shader.setUniformValue("modelMatrix", modelMatrix);
     shader.setUniformValue("projectionMatrix", projectionMatrix);
 
-    vbo.bind();
-    int offset = 0;
-    int vertLoc = shader.attributeLocation("a_Vertex");
-    shader.enableAttributeArray(vertLoc);
-    shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
+    switch(type)
+    {
+    case 0:
+    {
+        vboSphere.bind();
+        int offset = 0;
+        int vertLoc = shader.attributeLocation("a_Vertex");
+        shader.enableAttributeArray(vertLoc);
+        shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
 
-    //ibo.bind();
-    glLineWidth(5);
-    glDrawArrays(GL_LINES,0,vbo.size());
-    vbo.release();
+        vboSphere.bind();
+        ibo.bind();
+        glDrawElements(GL_LINES,ibo.size(),GL_UNSIGNED_INT,0);
+        ibo.release();
+        vboSphere.release();
+        break;
+    }
+    case 1:
+    {
+        vboCylinder.bind();
+        int offset = 0;
+        int vertLoc = shader.attributeLocation("a_Vertex");
+        shader.enableAttributeArray(vertLoc);
+        shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
+
+        vboCylinder.bind();
+        glDrawArrays(GL_LINES,0,vboCylinder.size());
+        vboCylinder.release();
+         break;
+    }
+    case 2:
+    {
+        vboCube.bind();
+        int offset = 0;
+        int vertLoc = shader.attributeLocation("a_Vertex");
+        shader.enableAttributeArray(vertLoc);
+        shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
+
+        vboCube.bind();
+        glDrawArrays(GL_LINES,0,vboCone.size());
+        vboCube.release();
+         break;
+    }
+    case 3:
+    {
+        vboTor.bind();
+        int offset = 0;
+        int vertLoc = shader.attributeLocation("a_Vertex");
+        shader.enableAttributeArray(vertLoc);
+        shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
+
+        vboTor.bind();
+        glDrawArrays(GL_LINES,0,vboTor.size());
+        vboTor.release();
+         break;
+    }
+    case 4:
+    {
+        vboCone.bind();
+        int offset = 0;
+        int vertLoc = shader.attributeLocation("a_Vertex");
+        shader.enableAttributeArray(vertLoc);
+        shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
+
+        vboCone.bind();
+        glDrawArrays(GL_LINES,0,vboCone.size());
+        vboCone.release();
+         break;
+    }
+    }
 }
 
 void OpenglWidget::initShaders()
@@ -137,10 +227,7 @@ void OpenglWidget::initName(int x0,int y0, int h, int w, int d1,int d2)
     pData.append(QVector3D(coeff , y0  ,0.0f));
     pData.append(QVector3D(coeff + d2, y0  ,0.0f));
 
-    vbo.create();
-    vbo.bind();
-    vbo.allocate(pData.constData(),pData.size() * sizeof(PointData));
-    vbo.release();
+
 }
 
 void OpenglWidget::initSphere(const float& radius, const int& sectorCount, const int &stackCount)
@@ -202,15 +289,158 @@ void OpenglWidget::initSphere(const float& radius, const int& sectorCount, const
     }
 
 
-    vbo.create();
-    vbo.bind();
-    vbo.allocate(pData.constData(),pData.size() * sizeof(PointData));
-    vbo.release();
+    vboSphere.create();
+    vboSphere.bind();
+    vboSphere.allocate(pData.constData(),pData.size() * sizeof(PointData));
+    vboSphere.release();
 
     ibo.create();
     ibo.bind();
     ibo.allocate(indices.constData(),indices.size() * sizeof(int));
     ibo.release();
+}
+
+void OpenglWidget::initTor(float majorRadius, float minorRadius, int numMajor, int numMinor)
+{
+    QVector<PointData> pData;
+    double majorStep = 2.0f * 3.14159265358979323846 / numMajor;
+    double minorStep = 2.0f * 3.14159265358979323846 / numMinor;
+    int i, j;
+
+    for (i = 0; i < numMajor; ++i)
+    {
+            double a0 = i * majorStep;
+            double a1 = a0 + majorStep;
+            GLfloat x0 = (GLfloat) cos(a0);
+            GLfloat y0 = (GLfloat) sin(a0);
+            GLfloat x1 = (GLfloat) cos(a1);
+            GLfloat y1 = (GLfloat) sin(a1);
+
+        for (j=0; j<=numMinor; ++j)
+        {
+            double b = j * minorStep;
+            GLfloat c = (GLfloat) cos(b);
+            GLfloat r = minorRadius * c + majorRadius;
+            GLfloat z = minorRadius * (GLfloat) sin(b);
+
+            // Первая точка
+            pData.push_back(QVector3D(x0*r, y0*r, z));
+            pData.push_back(QVector3D(x1*r, y1*r, z));
+        }
+    }
+    vboTor.create();
+    vboTor.bind();
+    vboTor.allocate(pData.constData(),pData.size() * sizeof(PointData));
+    vboTor.release();
+
+}
+
+void OpenglWidget::initCube(float width)
+{
+     QVector<PointData> pData;
+
+     pData.push_back(QVector3D(-width / 2, -width / 2, -width / 2));
+     pData.push_back(QVector3D(-width / 2,  width / 2, -width / 2));
+     pData.push_back(QVector3D(-width / 2,  width / 2,  width / 2));
+     pData.push_back(QVector3D(-width / 2, -width / 2,  width / 2));
+
+     pData.push_back(QVector3D( width / 2, -width / 2, -width / 2));
+     pData.push_back(QVector3D( width / 2, -width / 2,  width / 2));
+     pData.push_back(QVector3D( width / 2,  width / 2,  width / 2));
+     pData.push_back(QVector3D( width / 2,  width / 2, -width / 2));
+
+     pData.push_back(QVector3D(-width / 2, -width / 2, -width / 2));
+     pData.push_back(QVector3D(-width / 2, -width / 2,  width / 2));
+     pData.push_back(QVector3D( width / 2, -width / 2,  width / 2));
+     pData.push_back(QVector3D( width / 2, -width / 2, -width / 2));
+
+     pData.push_back(QVector3D(-width / 2, width/ 2, -width/ 2));
+     pData.push_back(QVector3D(-width / 2, width/ 2,  width/ 2));
+     pData.push_back(QVector3D( width / 2, width/ 2,  width/ 2));
+     pData.push_back(QVector3D( width / 2, width/ 2, -width/ 2));
+
+     pData.push_back(QVector3D(-width / 2, -width / 2, -width / 2));
+     pData.push_back(QVector3D( width / 2, -width / 2, -width / 2));
+     pData.push_back(QVector3D( width / 2,  width / 2, -width / 2));
+     pData.push_back(QVector3D(-width / 2,  width / 2, -width / 2));
+
+     pData.push_back(QVector3D(-width / 2, -width / 2,  width / 2));
+     pData.push_back(QVector3D( width / 2, -width / 2,  width / 2));
+     pData.push_back(QVector3D( width / 2,  width / 2,  width / 2));
+     pData.push_back(QVector3D(-width / 2,  width / 2,  width / 2));
+
+     pData.push_back(QVector3D( width / 2,  -width / 2,  width / 2));
+     pData.push_back(QVector3D( width / 2,  width / 2,  width / 2));
+     pData.push_back(QVector3D( width / 2,  -width / 2,  -width / 2));
+     pData.push_back(QVector3D(width / 2,  width / 2, - width / 2));
+
+
+     vboCube.create();
+     vboCube.bind();
+     vboCube.allocate(pData.constData(),pData.size() * sizeof(PointData));
+     vboCube.release();
+}
+
+void OpenglWidget::initCylinder(float radius, float height, float halfLength,int slices)
+{
+    QVector<PointData> pData;
+    for(int i=0; i<slices; i++)
+    {
+        float seta = i*360.0/slices;
+        float vx = sin(qDegreesToRadians(seta))*radius;
+        float vy = cos(qDegreesToRadians(seta))*radius;
+
+        pData.push_back(QVector3D(vx, vy,  -height));
+        pData.push_back(QVector3D(vx, vy,   height));
+
+    }
+    for(int i=0; i<slices; i++)
+    {
+        float seta = i*360.0/slices;
+        float seta1 = (i +1)*360.0/slices;
+        float vx = sin(qDegreesToRadians(seta))*radius;
+        float vy = cos(qDegreesToRadians(seta))*radius;
+
+        float vx1 = sin(qDegreesToRadians(seta1))*radius;
+        float vy1 = cos(qDegreesToRadians(seta1))*radius;
+
+        pData.push_back(QVector3D(vx, vy,  height));
+        pData.push_back(QVector3D(vx1, vy1,   height));
+
+        pData.push_back(QVector3D(vx, vy,  -height));
+        pData.push_back(QVector3D(vx1, vy1,   -height));
+
+    }
+    vboCylinder.create();
+    vboCylinder.bind();
+    vboCylinder.allocate(pData.constData(),pData.size() * sizeof(PointData));
+    vboCylinder.release();
+}
+
+void OpenglWidget::initCone(float radius, float height,float slices)
+{
+    QVector<PointData> pData;
+
+    for (int i = 0; i < slices; i++)
+    {
+        float seta = i*360.0/slices;
+         pData.push_back(QVector3D(sin((qDegreesToRadians(seta))) * radius, cos((qDegreesToRadians(seta))) * radius,0.0f ));
+         pData.push_back(QVector3D(0, 0, height));
+    }
+
+    for (int i = 0; i < slices; i++)
+    {
+        float seta = i*360.0/slices;
+        float seta1 = (i +1)*360.0/slices;
+        pData.push_back(QVector3D(sin((qDegreesToRadians(seta))) * radius, cos((qDegreesToRadians(seta))) * radius,0.0f ));
+        pData.push_back(QVector3D(sin((qDegreesToRadians(seta1))) * radius, cos((qDegreesToRadians(seta1))) * radius,0.0f ));
+    }
+
+    vboCone.create();
+    vboCone.bind();
+    vboCone.allocate(pData.constData(),pData.size() * sizeof(PointData));
+    vboCone.release();
+
 }
 
 
@@ -239,39 +469,26 @@ void OpenglWidget::mouseMoveEvent(QMouseEvent *event)
 void OpenglWidget::keyPressEvent(QKeyEvent *event)
 {
     if (event->type() == QKeyEvent::KeyPress)
-        {
-            int ikey = event->key();
-
-            keys[ikey] = true;
-        }
-        this->update();
+     {
+         int ikey = event->key();
+         if(ikey > 1024)
+             return;
+         keys[ikey] = true;
+     }
+     this->update();
 }
 
 void OpenglWidget::keyReleaseEvent(QKeyEvent *event)
 {
     int ikey = event->key();
+    if(ikey > 1024)
+        return;
     keys[ikey] = false;
     this->update();
 }
 
 void OpenglWidget::pollEvents()
 {
-    if (keys[Qt::Key_T] == true)
-    {
-        m_translate += QVector3D(0.0f,0.05f,0.0f);
-    }
-    if (keys[Qt::Key_G] == true)
-    {
-        m_translate += QVector3D(0.0f,-0.05f,0.0f);
-    }
-    if (keys[Qt::Key_F] == true)
-    {
-        m_translate += QVector3D(-0.05f,0.0f,0.0f);
-    }
-    if (keys[Qt::Key_H] == true)
-    {
-        m_translate += QVector3D(0.05f,0.0f,0.0f);
-    }
     if (keys[Qt::Key_W] == true)
     {
         camera->ProcessKeyboard(FORWARD, deltaTime);
@@ -290,4 +507,72 @@ void OpenglWidget::pollEvents()
 
     }
     this->update();
+}
+
+void OpenglWidget::indexChange(int index)
+{
+    type = index;
+    x = 0.0f;
+    y = 0.0f;
+    z = 0.0f;
+    q = QQuaternion();
+    rotState = false;
+    scale = QVector3D(1.0f,1.0f,1.0f);
+}
+
+void OpenglWidget::moveX(int _x)
+{
+
+    x = _x/float(1000);
+}
+
+void OpenglWidget::moveY(int _y)
+{
+    y = _y/float(1000);
+}
+
+void OpenglWidget::moveZ(int _z)
+{
+    z = _z/float(1000);
+}
+
+void OpenglWidget::zoom(int z)
+{
+   float t = z/float(100);
+   scale = QVector3D(t,t,t);
+}
+
+void OpenglWidget::angle(int ang)
+{
+    rotState = true;
+    switch(rotateType)
+    {
+    case 0:
+    {
+        q = QQuaternion::fromAxisAndAngle(QVector3D(1.0f,0.0f,0.0f),float(ang));
+        break;
+    }
+    case 1:
+    {
+        q = QQuaternion::fromAxisAndAngle(QVector3D(0.0f,1.0f,0.0f),float(ang));
+        break;
+    }
+    case 2:
+    {
+        q = QQuaternion::fromAxisAndAngle(QVector3D(0.0f,0.0f,1.0f),float(ang));
+        break;
+    }
+    }
+
+}
+
+void OpenglWidget::RotIndexChange(int index)
+{
+    rotateType = index;
+}
+
+void OpenglWidget::upCheck(int ch)
+{
+    check = ch;
+    q = QQuaternion();
 }

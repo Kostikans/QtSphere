@@ -18,10 +18,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     camera.cpp \
     main.cpp \
+    mainwindow.cpp \
     openglwidget.cpp
 
 HEADERS += \
     camera.h \
+    mainwindow.h \
     openglwidget.h
 
 # Default rules for deployment.
