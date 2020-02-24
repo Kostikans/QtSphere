@@ -38,14 +38,17 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
     box.addItem("Cube");
     box.addItem("Tor");
     box.addItem("Cone");
+    box.addItem("Tree");
 
     connect(&box, SIGNAL( currentIndexChanged(int)), openglWidget, SLOT(indexChange(int)));
     connect(&RotBox, SIGNAL( currentIndexChanged(int)), openglWidget, SLOT(RotIndexChange(int)));
     connect(&checkBox, SIGNAL( stateChanged(int)), openglWidget, SLOT(upCheck(int)));
+    connect(&checkFilled, SIGNAL( stateChanged(int)), openglWidget, SLOT(upFilled(int)));
 
     verticalLayout->addWidget(&RotBox);
     verticalLayout->addWidget(&box);
     verticalLayout->addWidget(&checkBox);
+    verticalLayout->addWidget(&checkFilled);
 
 
     xSlider->setValue(0);

@@ -26,6 +26,7 @@ private:
     QComboBox box;
     QComboBox RotBox;
     QCheckBox checkBox;
+    QCheckBox checkFilled;
 
     QLabel  *x;
     QLabel  *y;

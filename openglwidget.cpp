@@ -20,12 +20,15 @@ void OpenglWidget::initializeGL()
     glClearColor(0.0f, 0.05f, 0.05f, 1.0f);
 
     glEnable(GL_DEPTH_TEST);
-    initSphere(1.0f,100,100);
+
     initName(0.0f,0.0f,15.0f,10.0f,5.0f,3.0f);
-    initTor(2.0f,1.0f,60,60);
-    initCube(1.0f);
-    initCylinder(1.0f,3.0f,2.0f,50);
-    initCone(1.0f,2.0f,60);
+
+    initSphere(&vboSphere, &ibo,1.0f,100,100);
+    initTor(&vboTor,2.0f,1.0f,60,60);
+    initCube(&vboCube,1.0f);
+    initCylinder(&vboCylinder,1.0f,3.0f,2.0f,50);
+    initCone(&vboCone,1.0f,2.0f,60);
+    initTree(5.0f,3.0f);
     initShaders();
 }
 
@@ -87,7 +90,10 @@ void OpenglWidget::paintGL()
 
         vboSphere.bind();
         ibo.bind();
-        glDrawElements(GL_LINES,ibo.size(),GL_UNSIGNED_INT,0);
+        if(!filCheck)
+            glDrawElements(GL_LINES,ibo.size(),GL_UNSIGNED_INT,0);
+        else
+            glDrawElements(GL_TRIANGLES,ibo.size(),GL_UNSIGNED_INT,0);
         ibo.release();
         vboSphere.release();
         break;
@@ -101,7 +107,10 @@ void OpenglWidget::paintGL()
         shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
 
         vboCylinder.bind();
-        glDrawArrays(GL_LINES,0,vboCylinder.size());
+        if(!filCheck)
+             glDrawArrays(GL_LINES,0,vboCylinder.size());
+        else
+             glDrawArrays(GL_TRIANGLE_FAN,0,vboCylinder.size());
         vboCylinder.release();
          break;
     }
@@ -114,7 +123,10 @@ void OpenglWidget::paintGL()
         shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
 
         vboCube.bind();
-        glDrawArrays(GL_LINES,0,vboCone.size());
+         if(!filCheck)
+             glDrawArrays(GL_LINES,0,vboCone.size());
+         else
+             glDrawArrays(GL_TRIANGLE_FAN,0,vboCone.size());
         vboCube.release();
          break;
     }
@@ -127,7 +139,10 @@ void OpenglWidget::paintGL()
         shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
 
         vboTor.bind();
-        glDrawArrays(GL_LINES,0,vboTor.size());
+         if(!filCheck)
+             glDrawArrays(GL_LINES,0,vboTor.size());
+         else
+             glDrawArrays(GL_TRIANGLE_STRIP,0,vboTor.size());
         vboTor.release();
          break;
     }
@@ -140,11 +155,23 @@ void OpenglWidget::paintGL()
         shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
 
         vboCone.bind();
-        glDrawArrays(GL_LINES,0,vboCone.size());
+         if(!filCheck)
+             glDrawArrays(GL_LINES,0,vboCone.size());
+         else
+             glDrawArrays(GL_TRIANGLE_FAN,0,vboCone.size());
         vboCone.release();
          break;
     }
+    case 5:
+    {
+        QOpenGLFunctions func;
+        func.initializeOpenGLFunctions();
+        if(!filCheck)
+             treeData.draw(&shader,modelMatrix,&func);
+        break;
     }
+    }
+
 }
 
 void OpenglWidget::initShaders()
@@ -230,7 +257,7 @@ void OpenglWidget::initName(int x0,int y0, int h, int w, int d1,int d2)
 
 }
 
-void OpenglWidget::initSphere(const float& radius, const int& sectorCount, const int &stackCount)
+void initSphere(QOpenGLBuffer *buff,QOpenGLBuffer *ibo, const float& radius, const int& sectorCount, const int &stackCount)
 {
 
     QVector<PointData> pData;
@@ -289,18 +316,18 @@ void OpenglWidget::initSphere(const float& radius, const int& sectorCount, const
     }
 
 
-    vboSphere.create();
-    vboSphere.bind();
-    vboSphere.allocate(pData.constData(),pData.size() * sizeof(PointData));
-    vboSphere.release();
+    buff->create();
+    buff->bind();
+    buff->allocate(pData.constData(),pData.size() * sizeof(PointData));
+    buff->release();
 
-    ibo.create();
-    ibo.bind();
-    ibo.allocate(indices.constData(),indices.size() * sizeof(int));
-    ibo.release();
+    ibo->create();
+    ibo->bind();
+    ibo->allocate(indices.constData(),indices.size() * sizeof(int));
+    ibo->release();
 }
 
-void OpenglWidget::initTor(float majorRadius, float minorRadius, int numMajor, int numMinor)
+void initTor(QOpenGLBuffer *buff,float majorRadius, float minorRadius, int numMajor, int numMinor)
 {
     QVector<PointData> pData;
     double majorStep = 2.0f * 3.14159265358979323846 / numMajor;
@@ -328,14 +355,14 @@ void OpenglWidget::initTor(float majorRadius, float minorRadius, int numMajor, i
             pData.push_back(QVector3D(x1*r, y1*r, z));
         }
     }
-    vboTor.create();
-    vboTor.bind();
-    vboTor.allocate(pData.constData(),pData.size() * sizeof(PointData));
-    vboTor.release();
+    buff->create();
+    buff->bind();
+    buff->allocate(pData.constData(),pData.size() * sizeof(PointData));
+    buff->release();
 
 }
 
-void OpenglWidget::initCube(float width)
+void initCube(QOpenGLBuffer *buff,float width)
 {
      QVector<PointData> pData;
 
@@ -375,13 +402,13 @@ void OpenglWidget::initCube(float width)
      pData.push_back(QVector3D(width / 2,  width / 2, - width / 2));
 
 
-     vboCube.create();
-     vboCube.bind();
-     vboCube.allocate(pData.constData(),pData.size() * sizeof(PointData));
-     vboCube.release();
+     buff->create();
+     buff->bind();
+     buff->allocate(pData.constData(),pData.size() * sizeof(PointData));
+     buff->release();
 }
 
-void OpenglWidget::initCylinder(float radius, float height, float halfLength,int slices)
+void initCylinder(QOpenGLBuffer *buff,float radius, float height, float halfLength,int slices)
 {
     QVector<PointData> pData;
     for(int i=0; i<slices; i++)
@@ -411,13 +438,13 @@ void OpenglWidget::initCylinder(float radius, float height, float halfLength,int
         pData.push_back(QVector3D(vx1, vy1,   -height));
 
     }
-    vboCylinder.create();
-    vboCylinder.bind();
-    vboCylinder.allocate(pData.constData(),pData.size() * sizeof(PointData));
-    vboCylinder.release();
+    buff->create();
+    buff->bind();
+    buff->allocate(pData.constData(),pData.size() * sizeof(PointData));
+    buff->release();
 }
 
-void OpenglWidget::initCone(float radius, float height,float slices)
+void initCone(QOpenGLBuffer *buff,float radius, float height,float slices)
 {
     QVector<PointData> pData;
 
@@ -436,11 +463,18 @@ void OpenglWidget::initCone(float radius, float height,float slices)
         pData.push_back(QVector3D(sin((qDegreesToRadians(seta1))) * radius, cos((qDegreesToRadians(seta1))) * radius,0.0f ));
     }
 
-    vboCone.create();
-    vboCone.bind();
-    vboCone.allocate(pData.constData(),pData.size() * sizeof(PointData));
-    vboCone.release();
+    buff->create();
+    buff->bind();
+    buff->allocate(pData.constData(),pData.size() * sizeof(PointData));
+    buff->release();
 
+}
+
+void OpenglWidget::initTree(float width, float height)
+{
+    treeData.width = width;
+    treeData.height = height;
+    treeData.init();
 }
 
 
@@ -575,4 +609,9 @@ void OpenglWidget::upCheck(int ch)
 {
     check = ch;
     q = QQuaternion();
+}
+
+void OpenglWidget::upFilled(int ch)
+{
+    filCheck = ch;
 }
