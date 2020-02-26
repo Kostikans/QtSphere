@@ -1,5 +1,5 @@
-#include "Camera.h"
 #include <QtMath>
+#include "camera.h"
 
 Camera::Camera(QVector3D _position, QVector3D _up, float _yaw, float _pitch)
     : front(QVector3D(0.0f, 0.0f, -1.0f)), movementSpeed(SPEED), mouseSensitivity(SENSITIVITY), zoom(ZOOM)

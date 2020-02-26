@@ -176,8 +176,8 @@ void OpenglWidget::paintGL()
 
 void OpenglWidget::initShaders()
 {
-    shader.addShaderFromSourceFile(QOpenGLShader::Vertex,"C:/Users/ea56/Documents/QtSphere/vert.vert");
-    shader.addShaderFromSourceFile(QOpenGLShader::Fragment,"C:/Users/ea56/Documents/QtSphere/frag.frag");
+    shader.addShaderFromSourceFile(QOpenGLShader::Vertex,"/home/kostikan/Документы/GitHub/QtSphere/vert.vert");
+    shader.addShaderFromSourceFile(QOpenGLShader::Fragment,"/home/kostikan/Документы/GitHub/QtSphere/frag.frag");
     shader.link();
 }
 

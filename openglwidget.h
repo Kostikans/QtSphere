@@ -42,58 +42,71 @@ class Tree{
 public:
    float height;
    float width;
-   QVector3D t1 = QVector3D(0.0f,0.0f,0.0f);
-   QVector3D t2 = QVector3D(2.0f,0.0f,0.0f);
-   QVector3D t3 = QVector3D(3.0f,0.0f,0.0f);
-   QVector3D t4 = QVector3D(4.0f,0.0f,0.0f);
+   QVector3D t1;
+   QVector3D t2;
+   QVector3D t3;
+   QVector3D t4;
 
 public:
    void init()
    {
-       initCylinder(&vboCylinder,width/5.0f,height/4.0f,4.0f,50);
+       initCylinder(&vboCylinder,width/7.0f,height/5.0f,2.0f,50);
        initCone(&vboCone1,width/2.0f,height,50);
-       initCone(&vboCone2,width/2.0f,height/2.0f,50);
-       initCone(&vboCone3,width/2.0f,height/3.0f,50);
+       initCone(&vboCone2,width/3.0f,height,50);
+       initCone(&vboCone3,width/4.0f,height,50);
+       t1 = QVector3D(0.0f,0.0f,0.0f);
+       t2 = QVector3D(0.0f,0.0f,0.0f);
+       t3 = QVector3D(0.0f,0.0f,1.5f);
+       t4 = QVector3D(0.0f,0.0f,3.0f);
    }
    void draw(QOpenGLShaderProgram *shader,QMatrix4x4 model,QOpenGLFunctions *func)
    {
        vboCylinder.bind();
        shader->bind();
+       QMatrix4x4 mod = model;
        int offset = 0;
        int vertLoc = shader->attributeLocation("a_Vertex");
        shader->enableAttributeArray(vertLoc);
        shader->setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
-       shader->setUniformValue("modelMatrix",model * t1);
+       mod.translate(t1);
+       shader->setUniformValue("modelMatrix", mod);
 
        func->glDrawArrays(GL_LINES,0,vboCylinder.size());
        vboCylinder.release();
 
+       mod = model;
        vboCone1.bind();
        shader->bind();
        int vertLoc1 = shader->attributeLocation("a_Vertex");
        shader->enableAttributeArray(vertLoc1);
        shader->setAttributeBuffer(vertLoc1,GL_FLOAT, offset, 3, sizeof(PointData));
-       shader->setUniformValue("modelMatrix",model * t1);
+       qDebug()<< t2.x();
+       mod.translate(t2);
+       shader->setUniformValue("modelMatrix", mod);
 
        func->glDrawArrays(GL_LINES,0,vboCone1.size());
        vboCone1.release();
 
+       mod = model;
        vboCone2.bind();
        shader->bind();
        int vertLoc2 = shader->attributeLocation("a_Vertex");
        shader->enableAttributeArray(vertLoc2);
        shader->setAttributeBuffer(vertLoc2,GL_FLOAT, offset, 3, sizeof(PointData));
-       shader->setUniformValue("modelMatrix",model * t2);
+       mod.translate(t3);
+       shader->setUniformValue("modelMatrix", mod);
 
        func->glDrawArrays(GL_LINES,0,vboCone2.size());
        vboCone2.release();
 
+        mod = model;
        vboCone3.bind();
        shader->bind();
        int vertLoc3 = shader->attributeLocation("a_Vertex");
        shader->enableAttributeArray(vertLoc3);
        shader->setAttributeBuffer(vertLoc3,GL_FLOAT, offset, 3, sizeof(PointData));
-       shader->setUniformValue("modelMatrix",model * t3);
+       mod.translate(t4);
+       shader->setUniformValue("modelMatrix",mod);
 
        func->glDrawArrays(GL_LINES,0,vboCone3.size());
        vboCone3.release();
