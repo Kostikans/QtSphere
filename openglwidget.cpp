@@ -7,11 +7,10 @@ OpenglWidget::OpenglWidget(QOpenGLWidget *parent)
 {
     camera = new Camera(QVector3D(0.0f, 0.0f, 4.0f));
     this->setMouseTracking(true);
-    this->grabKeyboard();
     lastX = size().width() / 2.0f;
     lastY = size().height() / 2.0f;
     scale = QVector3D(1.0f,1.0f,1.0f);
-    makeCurrent();
+
 }
 
 void OpenglWidget::initializeGL()
@@ -22,6 +21,7 @@ void OpenglWidget::initializeGL()
     glEnable(GL_DEPTH_TEST);
 
     initName(0.0f,0.0f,15.0f,10.0f,5.0f,3.0f);
+    radius = 1.0f;
 
     initSphere(&vboSphere, &ibo,1.0f,100,100);
     initTor(&vboTor,2.0f,1.0f,60,60);
@@ -29,6 +29,7 @@ void OpenglWidget::initializeGL()
     initCylinder(&vboCylinder,1.0f,3.0f,2.0f,50);
     initCone(&vboCone,1.0f,2.0f,60);
     initTree(5.0f,3.0f);
+    initSnegovik(1.0f);
     initShaders();
 }
 
@@ -87,6 +88,7 @@ void OpenglWidget::paintGL()
         int vertLoc = shader.attributeLocation("a_Vertex");
         shader.enableAttributeArray(vertLoc);
         shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
+
 
         vboSphere.bind();
         ibo.bind();
@@ -166,8 +168,14 @@ void OpenglWidget::paintGL()
     {
         QOpenGLFunctions func;
         func.initializeOpenGLFunctions();
-        if(!filCheck)
-             treeData.draw(&shader,modelMatrix,&func);
+        treeData.draw(&shader,modelMatrix,&func,filCheck);
+        break;
+    }
+    case 6:
+    {
+        QOpenGLFunctions *func = new QOpenGLFunctions;
+        func->initializeOpenGLFunctions();
+        snegovik.draw(&shader,modelMatrix,func,filCheck);
         break;
     }
     }
@@ -477,6 +485,12 @@ void OpenglWidget::initTree(float width, float height)
     treeData.init();
 }
 
+void OpenglWidget::initSnegovik(float radius)
+{
+    snegovik.radius = radius;
+    snegovik.init();
+}
+
 
 void OpenglWidget::mouseMoveEvent(QMouseEvent *event)
 {
@@ -615,3 +629,74 @@ void OpenglWidget::upFilled(int ch)
 {
     filCheck = ch;
 }
+
+//vboSphere1.bind();
+//QMatrix4x4 mod = modelMatrix;
+//int offset = 0;
+//int vertLoc = shader.attributeLocation("a_Vertex");
+//shader.enableAttributeArray(vertLoc);
+//shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
+//mod.translate(QVector3D(0.0f,0.0f,1.5f));
+//shader.setUniformValue("modelMatrix", mod);
+
+//vboSphere1.bind();
+//ibo1.bind();
+//if(!filCheck)
+//    glDrawElements(GL_LINES,ibo1.size(),GL_UNSIGNED_INT,0);
+//else
+//    glDrawElements(GL_TRIANGLES,ibo1.size(),GL_UNSIGNED_INT,0);
+//ibo1.release();
+//vboSphere1.release();
+
+//vboSphere1.bind();
+//mod = modelMatrix;
+//offset = 0;
+//vertLoc = shader.attributeLocation("a_Vertex");
+//shader.enableAttributeArray(vertLoc);
+//shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
+//mod.translate(QVector3D(0.0f,0.0f,1.5f));
+//shader.setUniformValue("modelMatrix", mod);
+
+//vboSphere1.bind();
+//ibo1.bind();
+//if(!filCheck)
+//    glDrawElements(GL_LINES,ibo1.size(),GL_UNSIGNED_INT,0);
+//else
+//    glDrawElements(GL_TRIANGLES,ibo1.size(),GL_UNSIGNED_INT,0);
+//ibo1.release();
+//vboSphere1.release();
+
+//vboSphere1.bind();
+// mod = modelMatrix;
+// offset = 0;
+// vertLoc = shader.attributeLocation("a_Vertex");
+//shader.enableAttributeArray(vertLoc);
+//shader.setAttributeBuffer(vertLoc,GL_FLOAT, offset, 3, sizeof(PointData));
+//mod.translate(QVector3D(0.0f,0.0f,1.5f));
+//shader.setUniformValue("modelMatrix", mod);
+
+//vboSphere1.bind();
+//ibo1.bind();
+//if(!filCheck)
+//    glDrawElements(GL_LINES,ibo1.size(),GL_UNSIGNED_INT,0);
+//else
+//    glDrawElements(GL_TRIANGLES,ibo1.size(),GL_UNSIGNED_INT,0);
+//ibo1.release();
+//vboSphere1.release();
+
+// mod = modelMatrix;
+//vboCone1.bind();
+//shader.bind();
+//int vertLoc3 = shader.attributeLocation("a_Vertex");
+//shader.enableAttributeArray(vertLoc3);
+//shader.setAttributeBuffer(vertLoc3,GL_FLOAT, offset, 3, sizeof(PointData));
+//mod.translate(QVector3D(0.0f,0.0f,1.0f));
+//shader.setUniformValue("modelMatrix",mod);
+
+//if(!filCheck)
+//    glDrawArrays(GL_LINES,0,vboCone1.size());
+//else
+//    glDrawArrays(GL_TRIANGLE_FAN,0,vboCone1.size());
+//vboCone1.release();
+
+//break;

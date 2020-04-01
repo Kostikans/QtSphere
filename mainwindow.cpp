@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
     box.addItem("Tor");
     box.addItem("Cone");
     box.addItem("Tree");
+    box.addItem("Snegovik");
 
     connect(&box, SIGNAL( currentIndexChanged(int)), openglWidget, SLOT(indexChange(int)));
     connect(&RotBox, SIGNAL( currentIndexChanged(int)), openglWidget, SLOT(RotIndexChange(int)));
